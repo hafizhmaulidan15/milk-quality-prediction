@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=./models/artifacts/rf_model_v1.pkl
+      - PIPELINE_PATH=./models/artifacts/preprocessing_pipeline.pkl
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./api/models/artifacts:/app/models/artifacts
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api

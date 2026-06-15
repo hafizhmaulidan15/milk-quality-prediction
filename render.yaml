@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: milk-quality-api
+    runtime: python
+    repo: https://github.com/yourusername/milk-quality-prediction
+    plan: free
+    region: singapore
+    buildCommand: pip install -r api/requirements.txt && cd api && python train_model.py
+    startCommand: cd api && uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_PATH
+        value: ./models/artifacts/rf_model_v1.pkl
+      - key: PIPELINE_PATH
+        value: ./models/artifacts/preprocessing_pipeline.pkl
+      - key: ALLOWED_ORIGINS
+        value: https://milk-quality.vercel.app,http://localhost:3000
+      - key: LOG_LEVEL
+        value: INFO

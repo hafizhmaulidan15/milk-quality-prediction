@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+*.egg
+.venv/
+venv/
+env/
+
+# ML artifacts
+api/models/artifacts/*.pkl
+api/models/artifacts/*.ubj
+!api/models/artifacts/.gitkeep
+
+# Data
+data/raw/
+data/processed/
+
+# Notebooks
+.ipynb_checkpoints/
+.jupyter/
+
+# Frontend
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env.local
+
+# API
+api/.env
+api/__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# DVC
+.dvc/
+*.dvc
