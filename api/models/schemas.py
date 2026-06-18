@@ -3,13 +3,24 @@ from typing import List, Optional
 
 
 class PredictRequest(BaseModel):
-    storage_temp: float = Field(..., description="Suhu penyimpanan (°C)")
+    temperature: float = Field(..., description="Suhu pengecekan (°C)")
+    fat: float = Field(..., ge=0, description="Kadar lemak (%)")
+    snf: float = Field(..., ge=0, description="Solid Non Fat (%)")
+    protein: float = Field(..., ge=0, description="Kadar protein (%)")
+    lactose: float = Field(..., ge=0, description="Kadar laktosa (%)")
+    total_solid: float = Field(..., ge=0, description="Total padatan (%)")
+    density: float = Field(..., ge=0, description="Berat jenis (g/mL)")
+    freezing_point: float = Field(..., description="Titik beku (°C)")
+    added_water: float = Field(..., ge=0, description="Air tambahan (%)")
     ph: float = Field(..., ge=0, le=14, description="pH susu")
-    storage_time: float = Field(..., description="Waktu simpan sejak pasteurisasi (jam)")
-    pasteurization_temp: float = Field(..., description="Suhu pasteurisasi (°C)")
-    tpc: Optional[float] = Field(None, description="Total Plate Count (CFU/mL)")
-    grading_delta_hours: Optional[float] = Field(None, description="Delta waktu grading-produksi (jam)")
-    shift: Optional[str] = Field(None, description="Shift produksi: Pagi/Siang/Malam")
+    alcohol_test: int = Field(..., ge=0, le=1, description="Tes alkohol 70%: 0=tidak pecah, 1=pecah")
+    peroxide_test: int = Field(..., ge=0, le=1, description="Tes peroksida: 0=negatif, 1=positif")
+    taste_score: int = Field(..., ge=1, le=5, description="Skor rasa (1-5)")
+    aroma_score: int = Field(..., ge=1, le=5, description="Skor aroma (1-5)")
+    texture_score: int = Field(..., ge=1, le=5, description="Skor tekstur (1-5)")
+    pasteurization_temp: Optional[float] = Field(None, description="Suhu pasteurisasi (°C)")
+    storage_temp: Optional[float] = Field(None, description="Suhu penyimpanan (°C)")
+    storage_time: Optional[float] = Field(None, description="Waktu simpan sejak pasteurisasi (jam)")
 
 
 class ShapFeature(BaseModel):

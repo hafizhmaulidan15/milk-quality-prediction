@@ -6,32 +6,62 @@ import { toast } from "sonner";
 import { predict, type PredictRequest, type PredictResponse } from "@/lib/api";
 import PredictionResult from "@/components/PredictionResult";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { FlaskConical, RotateCcw, AlertCircle } from "lucide-react";
+import { FlaskConical, RotateCcw, AlertCircle, Milk, Thermometer } from "lucide-react";
 
 const defaultForm: PredictRequest = {
-  storage_temp: 5,
+  temperature: 5,
+  fat: 4.0,
+  snf: 8.8,
+  protein: 3.2,
+  lactose: 4.7,
+  total_solid: 12.8,
+  density: 1.030,
+  freezing_point: -0.540,
+  added_water: 0,
   ph: 6.7,
-  storage_time: 12,
+  alcohol_test: 0,
+  peroxide_test: 0,
+  taste_score: 4,
+  aroma_score: 4,
+  texture_score: 4,
   pasteurization_temp: 72,
-  tpc: 50000,
-  grading_delta_hours: 2,
-  shift: "Pagi",
+  storage_temp: 4.5,
+  storage_time: 12,
 };
 
-const shifts = ["Pagi", "Siang", "Malam"];
+interface FieldMeta {
+  label: string;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+  section: "raw" | "post";
+  help?: string;
+}
 
-const fieldMeta: Record<
-  keyof PredictRequest,
-  { label: string; unit: string; min: number; max: number; step: number; required: boolean; desc: string }
-> = {
-  storage_temp: { label: "Suhu Penyimpanan", unit: "°C", min: -5, max: 20, step: 0.1, required: true, desc: "Ideal: 2-6°C" },
-  ph: { label: "pH Susu", unit: "", min: 0, max: 14, step: 0.01, required: true, desc: "Ideal: 6.6-6.8" },
-  storage_time: { label: "Waktu Simpan", unit: "jam", min: 0, max: 168, step: 0.5, required: true, desc: "Ideal: <24 jam" },
-  pasteurization_temp: { label: "Suhu Pasteurisasi", unit: "°C", min: 50, max: 100, step: 0.1, required: true, desc: "Ideal: 70-75°C" },
-  tpc: { label: "Total Plate Count", unit: "CFU/mL", min: 0, max: 5000000, step: 1000, required: false, desc: "Ideal: <50.000" },
-  grading_delta_hours: { label: "Delta Grading", unit: "jam", min: 0, max: 72, step: 0.5, required: false, desc: "Ideal: <2 jam" },
-  shift: { label: "Shift Produksi", unit: "", min: 0, max: 0, step: 0, required: false, desc: "" },
+const fieldMeta: Record<string, FieldMeta> = {
+  temperature: { label: "Suhu Pengecekan", unit: "°C", min: 0, max: 15, step: 0.1, section: "raw" },
+  fat: { label: "Lemak (Fat)", unit: "%", min: 1, max: 8, step: 0.1, section: "raw" },
+  snf: { label: "Solid Non Fat", unit: "%", min: 7, max: 11, step: 0.1, section: "raw" },
+  protein: { label: "Protein", unit: "%", min: 2, max: 5, step: 0.01, section: "raw" },
+  lactose: { label: "Laktosa", unit: "%", min: 3, max: 6, step: 0.1, section: "raw" },
+  total_solid: { label: "Total Solid", unit: "%", min: 10, max: 18, step: 0.1, section: "raw" },
+  density: { label: "Density", unit: "g/mL", min: 1.020, max: 1.040, step: 0.001, section: "raw" },
+  freezing_point: { label: "Titik Beku", unit: "°C", min: -0.600, max: -0.500, step: 0.001, section: "raw", help: "Normal: -0.520 sd -0.550" },
+  added_water: { label: "Air Tambahan", unit: "%", min: 0, max: 15, step: 0.1, section: "raw" },
+  ph: { label: "pH", unit: "", min: 6, max: 7.5, step: 0.01, section: "raw", help: "Normal: 6.6-6.8" },
+  taste_score: { label: "Rasa (1-5)", unit: "", min: 1, max: 5, step: 1, section: "raw" },
+  aroma_score: { label: "Aroma (1-5)", unit: "", min: 1, max: 5, step: 1, section: "raw" },
+  texture_score: { label: "Tekstur (1-5)", unit: "", min: 1, max: 5, step: 1, section: "raw" },
+  pasteurization_temp: { label: "Suhu Pasteurisasi", unit: "°C", min: 60, max: 95, step: 0.1, section: "post", help: "Opsional - isi setelah pasteurisasi" },
+  storage_temp: { label: "Suhu Penyimpanan", unit: "°C", min: 0, max: 15, step: 0.1, section: "post", help: "Opsional" },
+  storage_time: { label: "Waktu Simpan", unit: "jam", min: 0, max: 168, step: 0.5, section: "post", help: "Opsional" },
 };
+
+const binaryOptions = [
+  { label: "Tidak Pecah ✅", value: 0 },
+  { label: "Pecah ❌", value: 1 },
+];
 
 export default function PredictPage() {
   const [form, setForm] = useState<PredictRequest>(defaultForm);
@@ -39,15 +69,8 @@ export default function PredictPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateField = useCallback((field: keyof PredictRequest, raw: string) => {
-    const meta = fieldMeta[field];
-    if (field === "shift") {
-      setForm((prev) => ({ ...prev, shift: raw }));
-      return;
-    }
-    let val = meta.step >= 1 ? parseInt(raw) || 0 : parseFloat(raw) || 0;
-    if (raw === "") val = 0;
-    setForm((prev) => ({ ...prev, [field]: val }));
+  const updateField = useCallback((field: string, raw: string | number) => {
+    setForm((prev) => ({ ...prev, [field]: typeof raw === "string" && !isNaN(Number(raw)) ? Number(raw) : raw }));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,29 +91,86 @@ export default function PredictPage() {
     }
   };
 
-  const getRangeColor = (field: keyof PredictRequest, val: number) => {
-    const m = fieldMeta[field];
-    if (!m.required) return "";
-    const mid = (m.min + m.max) / 2;
-    const pct = Math.abs(val - mid) / ((m.max - m.min) / 2);
-    if (pct < 0.3) return "text-green-600";
-    if (pct < 0.6) return "text-amber-600";
-    return "text-red-600";
-  };
+  const renderField = (field: string) => {
+    const meta = fieldMeta[field];
+    if (!meta) return null;
 
-  const getRangeBg = (field: keyof PredictRequest, val: number) => {
-    const m = fieldMeta[field];
-    if (!m.required) return "bg-blue-500";
-    const mid = (m.min + m.max) / 2;
-    const pct = Math.abs(val - mid) / ((m.max - m.min) / 2);
-    if (pct < 0.3) return "bg-green-500";
-    if (pct < 0.6) return "bg-amber-500";
-    return "bg-red-500";
-  };
+    if (field === "alcohol_test" || field === "peroxide_test") {
+      return (
+        <div key={field}>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 capitalize">
+            {meta.label}
+          </label>
+          <div className="flex gap-2">
+            {binaryOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => updateField(field, opt.value)}
+                className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                  form[field as keyof PredictRequest] === opt.value
+                    ? "bg-blue-100 border-blue-300 text-blue-700"
+                    : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
-  const rangePct = (field: keyof PredictRequest, val: number) => {
-    const m = fieldMeta[field];
-    return ((val - m.min) / (m.max - m.min)) * 100;
+    if (field === "taste_score" || field === "aroma_score" || field === "texture_score") {
+      const val = form[field as keyof PredictRequest] as number;
+      return (
+        <div key={field}>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 capitalize">{meta.label}</label>
+          <div className="flex gap-1.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => updateField(field, n)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                  val === n
+                    ? "bg-blue-100 border-blue-300 text-blue-700"
+                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    const val = (form[field as keyof PredictRequest] as number) || 0;
+    const pct = ((val - meta.min) / (meta.max - meta.min)) * 100;
+
+    return (
+      <div key={field}>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-gray-700">{meta.label}</label>
+          <span className="text-xs font-mono font-bold text-blue-600">{val} {meta.unit}</span>
+        </div>
+        <input
+          type="range"
+          min={meta.min}
+          max={meta.max}
+          step={meta.step}
+          value={val}
+          onChange={(e) => updateField(field, e.target.value)}
+          className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-600"
+        />
+        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+          <span>{meta.min}</span>
+          {meta.help && <span className="text-gray-500">{meta.help}</span>}
+          <span>{meta.max}</span>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -98,60 +178,34 @@ export default function PredictPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-bold text-gray-900">Prediksi Kualitas Susu</h1>
         <p className="text-gray-500 mt-1">
-          Masukkan parameter produksi untuk memprediksi grade susu pasteurisasi secara real-time.
+          Masukkan parameter uji susu mentah dan pasteurisasi untuk prediksi grade.
         </p>
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <form onSubmit={handleSubmit} className="xl:col-span-3 space-y-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-            {(Object.keys(fieldMeta) as Array<keyof PredictRequest>).map((field) => {
-              const meta = fieldMeta[field];
-              if (field === "shift") {
-                return (
-                  <div key={field}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Shift Produksi</label>
-                    <select
-                      value={form.shift}
-                      onChange={(e) => updateField(field, e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white transition-shadow"
-                    >
-                      {shifts.map((s) => (<option key={s} value={s}>{s}</option>))}
-                    </select>
-                  </div>
-                );
-              }
-              const val = (form[field] as number) || 0;
-              return (
-                <div key={field}>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      {meta.label}
-                      {meta.required && <span className="text-red-400 ml-0.5">*</span>}
-                    </label>
-                    <span className={`text-xs font-mono font-bold ${getRangeColor(field, val)}`}>
-                      {val} {meta.unit}
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="range"
-                      min={meta.min}
-                      max={meta.max}
-                      step={meta.step}
-                      value={val}
-                      onChange={(e) => updateField(field, e.target.value)}
-                      className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-600"
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
-                    <span>{meta.min}</span>
-                    <span className="text-gray-500">{meta.desc}</span>
-                    <span>{meta.max}</span>
-                  </div>
-                </div>
-              );
-            })}
+        <form onSubmit={handleSubmit} className="xl:col-span-3 space-y-6 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <Milk className="w-5 h-5 text-blue-600" />
+              <h2 className="font-semibold text-gray-900">Uji Susu Mentah</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              {Object.entries(fieldMeta)
+                .filter(([, m]) => m.section === "raw")
+                .map(([field]) => renderField(field))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <Thermometer className="w-5 h-5 text-indigo-600" />
+              <h2 className="font-semibold text-gray-900">Setelah Pasteurisasi <span className="text-xs text-gray-400 font-normal">(opsional)</span></h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              {Object.entries(fieldMeta)
+                .filter(([, m]) => m.section === "post")
+                .map(([field]) => renderField(field))}
+            </div>
           </div>
 
           {error && (
@@ -205,7 +259,7 @@ export default function PredictPage() {
               <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center h-full min-h-[400px] bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300 p-8 text-center">
                 <FlaskConical className="w-16 h-16 text-blue-300 mb-4" />
                 <p className="text-gray-500 text-lg font-medium">Hasil prediksi akan muncul di sini</p>
-                <p className="text-gray-400 text-sm mt-1">Isi parameter produksi dan klik &ldquo;Prediksi Sekarang&rdquo;</p>
+                <p className="text-gray-400 text-sm mt-1">Isi parameter uji susu dan klik &ldquo;Prediksi Sekarang&rdquo;</p>
               </motion.div>
             )}
           </AnimatePresence>

@@ -81,7 +81,7 @@ class MilkQualityPredictor:
     def _get_shap_values(self, X_processed: np.ndarray) -> list:
         if self.explainer is None:
             return [
-                {"feature": f, "shap_value": 0.0} for f in FEATURE_COLUMNS[:3]
+                {"feature": f, "shap_value": 0.0} for f in FEATURE_COLUMNS[:5]
             ]
         try:
             shap_values = self.explainer(X_processed)
@@ -92,7 +92,7 @@ class MilkQualityPredictor:
                 idx = np.argsort(np.abs(vals))[-5:][::-1]
             else:
                 vals = np.zeros(len(FEATURE_COLUMNS))
-                idx = range(min(3, len(FEATURE_COLUMNS)))
+                idx = range(min(5, len(FEATURE_COLUMNS)))
             return [
                 {"feature": FEATURE_COLUMNS[i], "shap_value": round(float(vals[i]), 4)}
                 for i in idx
@@ -100,17 +100,17 @@ class MilkQualityPredictor:
         except Exception as e:
             logger.warning("SHAP computation failed: %s", e)
             return [
-                {"feature": f, "shap_value": 0.0} for f in FEATURE_COLUMNS[:3]
+                {"feature": f, "shap_value": 0.0} for f in FEATURE_COLUMNS[:5]
             ]
 
     def _generate_recommendation(
         self, grade: str, confidence: float, top_features: list
     ) -> str:
         recommendations = {
-            "A": "Batch siap distribusi. Pantau suhu cold chain.",
+            "A": "Batch siap distribusi. Kualitas premium, semua parameter SNI terpenuhi.",
             "B": "Batch layak konsumsi dengan deviasi minor. Evaluasi parameter proses.",
             "C": "Batch perlu penanganan khusus / blending. Review parameter produksi.",
-            "Reject": "Batch TIDAK LAYAK. Hentikan distribusi dan lakukan investigasi.",
+            "Reject": "Batch TIDAK LAYAK. Hentikan distribusi dan lakukan investigasi segera.",
         }
         base = recommendations.get(grade, "Lakukan pengecekan manual.")
         if confidence < 0.7:

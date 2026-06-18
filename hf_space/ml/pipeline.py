@@ -2,44 +2,55 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-
+from sklearn.preprocessing import StandardScaler
 
 FEATURE_COLUMNS = [
-    "storage_temp",
+    "temperature",
+    "fat",
+    "snf",
+    "protein",
+    "lactose",
+    "total_solid",
+    "density",
+    "freezing_point",
+    "added_water",
     "ph",
-    "storage_time",
+    "alcohol_test",
+    "peroxide_test",
+    "taste_score",
+    "aroma_score",
+    "texture_score",
     "pasteurization_temp",
-    "tpc",
-    "grading_delta_hours",
-    "shift_Pagi",
-    "shift_Siang",
+    "storage_temp",
+    "storage_time",
 ]
+
+NUMERIC_FEATURES = [
+    "temperature", "fat", "snf", "protein", "lactose",
+    "total_solid", "density", "freezing_point", "added_water",
+    "ph", "pasteurization_temp", "storage_temp", "storage_time",
+]
+
+BINARY_FEATURES = ["alcohol_test", "peroxide_test"]
+
+ORDINAL_FEATURES = ["taste_score", "aroma_score", "texture_score"]
 
 
 class FeatureEngineer(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.label_encoders_ = {}
+        self.medians_ = {}
 
     def fit(self, X, y=None):
+        for col in NUMERIC_FEATURES:
+            if col in X.columns:
+                self.medians_[col] = X[col].median()
         return self
 
     def transform(self, X):
         X = X.copy()
-        if "tpc" in X.columns:
-            X["tpc"] = X["tpc"].fillna(X["tpc"].median())
-        if "grading_delta_hours" in X.columns:
-            X["grading_delta_hours"] = X["grading_delta_hours"].fillna(
-                X["grading_delta_hours"].median()
-            )
-        if "shift" in X.columns:
-            X["shift"] = X["shift"].fillna("Pagi")
-        if "shift" in X.columns:
-            X["shift_Pagi"] = (X["shift"] == "Pagi").astype(int)
-            X["shift_Siang"] = (X["shift"] == "Siang").astype(int)
-            X = X.drop(columns=["shift"])
-        if "Malam" in X.columns:
-            X = X.drop(columns=["shift_Malam"], errors="ignore")
+        for col in self.medians_:
+            if col in X.columns:
+                X[col] = X[col].fillna(self.medians_[col])
         for col in FEATURE_COLUMNS:
             if col not in X.columns:
                 X[col] = 0

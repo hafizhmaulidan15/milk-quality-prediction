@@ -1,13 +1,24 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface PredictRequest {
-  storage_temp: number;
+  temperature: number;
+  fat: number;
+  snf: number;
+  protein: number;
+  lactose: number;
+  total_solid: number;
+  density: number;
+  freezing_point: number;
+  added_water: number;
   ph: number;
-  storage_time: number;
-  pasteurization_temp: number;
-  tpc?: number;
-  grading_delta_hours?: number;
-  shift?: string;
+  alcohol_test: number;
+  peroxide_test: number;
+  taste_score: number;
+  aroma_score: number;
+  texture_score: number;
+  pasteurization_temp?: number;
+  storage_temp?: number;
+  storage_time?: number;
 }
 
 export interface ShapFeature {
