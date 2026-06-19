@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Optional
 
 
 class PredictRequest(BaseModel):
@@ -8,19 +8,17 @@ class PredictRequest(BaseModel):
     snf: float = Field(..., ge=0, description="Solid Non Fat (%)")
     protein: float = Field(..., ge=0, description="Kadar protein (%)")
     lactose: float = Field(..., ge=0, description="Kadar laktosa (%)")
+    salt: float = Field(..., ge=0, description="Kadar garam (%)")
     total_solid: float = Field(..., ge=0, description="Total padatan (%)")
     density: float = Field(..., ge=0, description="Berat jenis (g/mL)")
-    freezing_point: float = Field(..., description="Titik beku (°C)")
     added_water: float = Field(..., ge=0, description="Air tambahan (%)")
+    freezing_point: float = Field(..., description="Titik beku (°C)")
     ph: float = Field(..., ge=0, le=14, description="pH susu")
     alcohol_test: int = Field(..., ge=0, le=1, description="Tes alkohol 70%: 0=tidak pecah, 1=pecah")
     peroxide_test: int = Field(..., ge=0, le=1, description="Tes peroksida: 0=negatif, 1=positif")
     taste_score: int = Field(..., ge=1, le=5, description="Skor rasa (1-5)")
     aroma_score: int = Field(..., ge=1, le=5, description="Skor aroma (1-5)")
     texture_score: int = Field(..., ge=1, le=5, description="Skor tekstur (1-5)")
-    pasteurization_temp: Optional[float] = Field(None, description="Suhu pasteurisasi (°C)")
-    storage_temp: Optional[float] = Field(None, description="Suhu penyimpanan (°C)")
-    storage_time: Optional[float] = Field(None, description="Waktu simpan sejak pasteurisasi (jam)")
 
 
 class ShapFeature(BaseModel):

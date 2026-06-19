@@ -21,23 +21,21 @@ def generate_synthetic_data(n=N_SAMPLES):
         "snf": np.random.normal(8.8, 0.5, n).clip(7.0, 10.5),
         "protein": np.random.normal(3.2, 0.4, n).clip(2.2, 4.5),
         "lactose": np.random.normal(4.7, 0.3, n).clip(3.5, 5.5),
+        "salt": np.random.normal(0.15, 0.04, n).clip(0.05, 0.3),
         "total_solid": np.random.normal(12.8, 1.0, n).clip(10.0, 16.0),
         "density": np.random.normal(1.030, 0.003, n).clip(1.026, 1.036),
-        "freezing_point": np.random.normal(-0.540, 0.010, n).clip(-0.570, -0.510),
         "added_water": np.random.exponential(1.0, n).clip(0, 10),
+        "freezing_point": np.random.normal(-0.540, 0.010, n).clip(-0.570, -0.510),
         "ph": np.random.normal(6.7, 0.15, n).clip(6.3, 7.0),
         "alcohol_test": np.random.choice([0, 1], n, p=[0.88, 0.12]),
         "peroxide_test": np.random.choice([0, 1], n, p=[0.95, 0.05]),
         "taste_score": np.clip(np.round(np.random.normal(4, 0.8, n)), 1, 5).astype(int),
         "aroma_score": np.clip(np.round(np.random.normal(4, 0.8, n)), 1, 5).astype(int),
         "texture_score": np.clip(np.round(np.random.normal(4, 0.8, n)), 1, 5).astype(int),
-        "pasteurization_temp": np.random.normal(72.0, 2.5, n).clip(65, 85),
-        "storage_temp": np.random.normal(4.5, 1.2, n).clip(0, 12),
-        "storage_time": np.random.exponential(18, n).clip(0, 120),
     }
     df = pd.DataFrame(data)
 
-    df["total_solid"] = df["fat"] + df["snf"]
+    df["total_solid"] = df["fat"] + df["snf"] + df["salt"]
 
     quality_score = (
         (df["ph"] >= 6.6).astype(float) * 2
@@ -53,9 +51,8 @@ def generate_synthetic_data(n=N_SAMPLES):
         + (df["taste_score"] >= 4).astype(float) * 1.5
         + (df["aroma_score"] >= 4).astype(float) * 1.5
         + (df["texture_score"] >= 4).astype(float) * 1.5
-        + (df["storage_temp"] <= 5).astype(float) * 2
-        + (df["storage_time"] <= 24).astype(float) * 1.5
-        + (df["pasteurization_temp"] >= 72).astype(float) * 1.5
+        + (df["temperature"] <= 6).astype(float) * 1
+        + (df["salt"] >= 0.12).astype(float) * 1
     )
 
     def assign_grade(row, score):

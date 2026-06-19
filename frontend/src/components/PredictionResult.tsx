@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { PredictResponse } from "@/lib/api";
 import { GRADE_COLORS, GRADE_TEXT_COLORS, GRADE_BG_LIGHT } from "@/lib/api";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
@@ -29,18 +29,6 @@ const gradeIcons: Record<string, typeof CheckCircle> = {
 export default function PredictionResult({ result, onReset }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const history = JSON.parse(localStorage.getItem("prediction_history") || "[]");
-    history.push({
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      grade: result.predicted_grade,
-      confidence: result.confidence,
-      input: {},
-    });
-    localStorage.setItem("prediction_history", JSON.stringify(history));
-  }, [result]);
-
   const grade = result.predicted_grade;
   const Gradelcon = gradeIcons[grade] || CheckCircle;
   const gradeLabel = gradeLabels[grade] || "";
@@ -67,13 +55,13 @@ export default function PredictionResult({ result, onReset }: Props) {
     w.document.write(`
       <html><head><title>Laporan Prediksi - Milk Quality</title>
       <style>
-        body { font-family: Inter, sans-serif; padding: 40px; max-width: 600px; margin: auto; }
+        body { font-family: Inter, sans-serif; padding: 40px; max-width: 600px; margin: auto; background: #f8f9fc; }
         .grade { font-size: 72px; font-weight: 900; }
         .info { color: #666; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #f5f5f5; }
-        .rec { background: #eef2ff; padding: 16px; border-radius: 8px; margin-top: 20px; }
+        .rec { background: #eef2ff; padding: 16px; border-radius: 12px; margin-top: 20px; }
       </style></head><body>
       <h1>Laporan Prediksi Kualitas Susu</h1>
       <div class="grade" style="color: ${barColors[grade]}">${grade}</div>
@@ -103,16 +91,16 @@ export default function PredictionResult({ result, onReset }: Props) {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-5"
     >
-      <div className={`p-6 rounded-2xl border-2 shadow-sm ${GRADE_BG_LIGHT[grade] || "bg-gray-50 border-gray-200"}`}>
+      <div className={`p-6 rounded-2xl glass-dark shadow-sm ${GRADE_BG_LIGHT[grade] || ""}`}>
         <div className="flex items-start justify-between mb-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Hasil Prediksi</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Hasil Prediksi</p>
           <div className="flex gap-1">
-            <button onClick={handlePrint} className="p-2 hover:bg-black/5 rounded-lg transition-colors" title="Cetak Laporan">
-              <Download className="w-4 h-4 text-gray-500" />
+            <button onClick={handlePrint} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Cetak Laporan">
+              <Download className="w-4 h-4 text-gray-400" />
             </button>
             {onReset && (
-              <button onClick={onReset} className="p-2 hover:bg-black/5 rounded-lg transition-colors" title="Prediksi Baru">
-                <X className="w-4 h-4 text-gray-500" />
+              <button onClick={onReset} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Prediksi Baru">
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             )}
           </div>
@@ -129,20 +117,20 @@ export default function PredictionResult({ result, onReset }: Props) {
           </motion.span>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-white">
                 {(result.confidence * 100).toFixed(1)}%
               </span>
               <Gradelcon className={`w-6 h-6 ${isGood ? "text-green-500" : isBad ? "text-red-500" : "text-amber-500"}`} />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">{gradeLabel}</p>
+            <p className="text-sm text-gray-400 mt-0.5">{gradeLabel}</p>
           </div>
         </div>
 
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={probData} layout="vertical" barCategoryGap="20%">
-              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: "#9ca3af" }} />
+              <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} contentStyle={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(20,20,40,0.95)", backdropFilter: "blur(12px)", boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }} />
               <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={28}>
                 {probData.map((entry) => (
                   <Cell key={entry.name} fill={barColors[entry.name] || "#d1d5db"} fillOpacity={entry.name === grade ? 1 : 0.3} />
@@ -153,10 +141,10 @@ export default function PredictionResult({ result, onReset }: Props) {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <div className="glass-dark p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold text-gray-900">Top Fitur Paling Berpengaruh</h3>
+          <TrendingUp className="w-5 h-5 text-blue-400" />
+          <h3 className="font-semibold text-white">Top Fitur Paling Berpengaruh</h3>
         </div>
         <div className="space-y-3">
           {result.top_features.map((f, i) => {
@@ -167,14 +155,14 @@ export default function PredictionResult({ result, onReset }: Props) {
             return (
               <motion.div key={f.feature} initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ delay: i * 0.1 }}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700 capitalize font-medium">
+                  <span className="text-gray-300 capitalize font-medium">
                     {f.feature.replace(/_/g, " ")}
                   </span>
                   <span className={`font-mono text-xs font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
                     {isPositive ? "+" : ""}{f.shap_value.toFixed(4)}
                   </span>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2.5 glass rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
@@ -192,17 +180,17 @@ export default function PredictionResult({ result, onReset }: Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className={`p-5 rounded-2xl border ${isGood ? "bg-blue-50 border-blue-200" : isBad ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}
+        className={`p-5 rounded-2xl glass-dark border ${isGood ? "border-green-500/20" : isBad ? "border-red-500/20" : "border-amber-500/20"}`}
       >
         <div className="flex items-start gap-3">
           {isGood ? (
-            <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" />
           ) : (
             <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
           )}
           <div>
-            <p className="font-semibold text-sm text-gray-900">Rekomendasi</p>
-            <p className="text-sm mt-0.5 text-gray-700">{result.recommendation}</p>
+            <p className="font-semibold text-sm text-white">Rekomendasi</p>
+            <p className="text-sm mt-0.5 text-gray-300">{result.recommendation}</p>
           </div>
         </div>
       </motion.div>

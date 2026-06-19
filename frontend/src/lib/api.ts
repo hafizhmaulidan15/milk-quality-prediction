@@ -6,19 +6,17 @@ export interface PredictRequest {
   snf: number;
   protein: number;
   lactose: number;
+  salt: number;
   total_solid: number;
   density: number;
-  freezing_point: number;
   added_water: number;
+  freezing_point: number;
   ph: number;
   alcohol_test: number;
   peroxide_test: number;
   taste_score: number;
   aroma_score: number;
   texture_score: number;
-  pasteurization_temp?: number;
-  storage_temp?: number;
-  storage_time?: number;
 }
 
 export interface ShapFeature {
@@ -50,7 +48,10 @@ export async function predict(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `HTTP ${res.status}`);
+    const msg = Array.isArray(err.detail)
+      ? err.detail.map((d: any) => d.msg || JSON.stringify(d)).join("; ")
+      : err.detail || `HTTP ${res.status}`;
+    throw new Error(msg);
   }
   return res.json();
 }
@@ -76,8 +77,8 @@ export const GRADE_TEXT_COLORS: Record<string, string> = {
 };
 
 export const GRADE_BG_LIGHT: Record<string, string> = {
-  A: "bg-green-50 border-green-200",
-  B: "bg-blue-50 border-blue-200",
-  C: "bg-amber-50 border-amber-200",
-  Reject: "bg-red-50 border-red-200",
+  A: "bg-green-900/20 border-green-500/30",
+  B: "bg-blue-900/20 border-blue-500/30",
+  C: "bg-amber-900/20 border-amber-500/30",
+  Reject: "bg-red-900/20 border-red-500/30",
 };

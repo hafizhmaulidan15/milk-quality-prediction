@@ -10,25 +10,22 @@ FEATURE_COLUMNS = [
     "snf",
     "protein",
     "lactose",
+    "salt",
     "total_solid",
     "density",
-    "freezing_point",
     "added_water",
+    "freezing_point",
     "ph",
     "alcohol_test",
     "peroxide_test",
     "taste_score",
     "aroma_score",
     "texture_score",
-    "pasteurization_temp",
-    "storage_temp",
-    "storage_time",
 ]
 
 NUMERIC_FEATURES = [
-    "temperature", "fat", "snf", "protein", "lactose",
-    "total_solid", "density", "freezing_point", "added_water",
-    "ph", "pasteurization_temp", "storage_temp", "storage_time",
+    "temperature", "fat", "snf", "protein", "lactose", "salt",
+    "total_solid", "density", "added_water", "freezing_point", "ph",
 ]
 
 BINARY_FEATURES = ["alcohol_test", "peroxide_test"]
@@ -51,6 +48,9 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         for col in self.medians_:
             if col in X.columns:
                 X[col] = X[col].fillna(self.medians_[col])
+        for col in BINARY_FEATURES + ORDINAL_FEATURES:
+            if col in X.columns:
+                X[col] = X[col].fillna(0)
         for col in FEATURE_COLUMNS:
             if col not in X.columns:
                 X[col] = 0
