@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GRADE_BG_LIGHT } from "@/lib/api";
-import { Clock, Trash2, BarChart3, Loader2 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClock, faTrash, faChartBar, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
 import { getPredictions, deleteAllPredictions, type PredictionRecord } from "@/lib/supabase";
 
@@ -76,7 +77,7 @@ export default function HistoryPage() {
             onClick={clearHistory}
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 glass hover:bg-white/5 rounded-xl transition-all"
           >
-            <Trash2 className="w-4 h-4" />
+            <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
             Hapus Semua
           </button>
         )}
@@ -106,7 +107,7 @@ export default function HistoryPage() {
       {chartData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-dark p-6 rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-blue-400" />
+            <FontAwesomeIcon icon={faChartBar} className="w-5 h-5 text-blue-400" />
             <h3 className="font-semibold text-white">Distribusi Grade</h3>
           </div>
           <div className="h-48">
@@ -136,7 +137,7 @@ export default function HistoryPage() {
         return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-dark p-6 rounded-2xl">
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-5 h-5 text-indigo-400" />
+              <FontAwesomeIcon icon={faChartBar} className="w-5 h-5 text-indigo-400" />
               <h3 className="font-semibold text-white">Tren Grade</h3>
             </div>
             <div className="h-48">
@@ -156,12 +157,12 @@ export default function HistoryPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-          <Loader2 className="w-12 h-12 mb-4 animate-spin opacity-50" />
+          <FontAwesomeIcon icon={faSpinner} spin className="w-12 h-12 mb-4 opacity-50" />
           <p className="text-lg font-medium text-gray-400">Memuat riwayat...</p>
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-          <Clock className="w-16 h-16 mb-4 opacity-50" />
+          <FontAwesomeIcon icon={faClock} className="w-16 h-16 mb-4 opacity-50" />
           <p className="text-lg font-medium text-gray-400">Belum ada riwayat prediksi</p>
           <p className="text-sm mt-1 text-gray-500">Lakukan prediksi melalui halaman Prediksi.</p>
         </div>

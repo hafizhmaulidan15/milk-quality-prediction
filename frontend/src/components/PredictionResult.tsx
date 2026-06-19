@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDownload, faXmark, faChartLine, faTriangleExclamation, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import type { PredictResponse } from "@/lib/api";
 import { GRADE_COLORS, GRADE_TEXT_COLORS, GRADE_BG_LIGHT } from "@/lib/api";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { motion } from "framer-motion";
-import { Download, X, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface Props {
   result: PredictResponse;
@@ -19,18 +20,18 @@ const gradeLabels: Record<string, string> = {
   Reject: "TIDAK LAYAK - Harus Dibuang",
 };
 
-const gradeIcons: Record<string, typeof CheckCircle> = {
-  A: CheckCircle,
-  B: CheckCircle,
-  C: AlertTriangle,
-  Reject: AlertTriangle,
+const gradeIcons: Record<string, any> = {
+  A: faCircleCheck,
+  B: faCircleCheck,
+  C: faTriangleExclamation,
+  Reject: faTriangleExclamation,
 };
 
 export default function PredictionResult({ result, onReset }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
 
   const grade = result.predicted_grade;
-  const Gradelcon = gradeIcons[grade] || CheckCircle;
+  const Gradelcon = gradeIcons[grade] || faCircleCheck;
   const gradeLabel = gradeLabels[grade] || "";
   const isGood = grade === "A" || grade === "B";
   const isBad = grade === "Reject";
@@ -96,11 +97,11 @@ export default function PredictionResult({ result, onReset }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Hasil Prediksi</p>
           <div className="flex gap-1">
             <button onClick={handlePrint} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Cetak Laporan">
-              <Download className="w-4 h-4 text-gray-400" />
+              <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-gray-400" />
             </button>
             {onReset && (
               <button onClick={onReset} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Prediksi Baru">
-                <X className="w-4 h-4 text-gray-400" />
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-400" />
               </button>
             )}
           </div>
@@ -120,7 +121,7 @@ export default function PredictionResult({ result, onReset }: Props) {
               <span className="text-3xl font-bold text-white">
                 {(result.confidence * 100).toFixed(1)}%
               </span>
-              <Gradelcon className={`w-6 h-6 ${isGood ? "text-green-500" : isBad ? "text-red-500" : "text-amber-500"}`} />
+              <FontAwesomeIcon icon={Gradelcon} className={`w-6 h-6 ${isGood ? "text-green-500" : isBad ? "text-red-500" : "text-amber-500"}`} />
             </div>
             <p className="text-sm text-gray-400 mt-0.5">{gradeLabel}</p>
           </div>
@@ -143,7 +144,7 @@ export default function PredictionResult({ result, onReset }: Props) {
 
       <div className="glass-dark p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-blue-400" />
+          <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-white">Top Fitur Paling Berpengaruh</h3>
         </div>
         <div className="space-y-3">
@@ -184,9 +185,9 @@ export default function PredictionResult({ result, onReset }: Props) {
       >
         <div className="flex items-start gap-3">
           {isGood ? (
-            <CheckCircle className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" />
+            <FontAwesomeIcon icon={faCircleCheck} className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" />
           ) : (
-            <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+            <FontAwesomeIcon icon={faTriangleExclamation} className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
           )}
           <div>
             <p className="font-semibold text-sm text-white">Rekomendasi</p>

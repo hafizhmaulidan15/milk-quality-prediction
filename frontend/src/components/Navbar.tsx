@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FlaskConical, History, Home, Menu, X, Sun, Moon } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFlask, faHouse, faClockRotateLeft, faBars, faXmark, faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
 
 const links = [
-  { href: "/", label: "Dashboard", icon: Home },
-  { href: "/predict", label: "Prediksi", icon: FlaskConical },
-  { href: "/history", label: "Riwayat", icon: History },
+  { href: "/", label: "Dashboard", icon: faHouse },
+  { href: "/predict", label: "Prediksi", icon: faFlask },
+  { href: "/history", label: "Riwayat", icon: faClockRotateLeft },
 ];
 
 export default function Navbar() {
@@ -36,7 +37,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-            <FlaskConical className="w-5 h-5 text-white" />
+            <FontAwesomeIcon icon={faFlask} className="w-5 h-5 text-white" />
           </div>
           <span className="font-bold text-lg text-white">Milk <span className="text-blue-400">Quality</span></span>
         </Link>
@@ -55,7 +56,7 @@ export default function Navbar() {
                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <FontAwesomeIcon icon={Icon} className="w-4 h-4" />
                 {link.label}
               </Link>
             );
@@ -65,7 +66,7 @@ export default function Navbar() {
             className="ml-2 p-2.5 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all"
             title={theme === "dark" ? "Mode Terang" : "Mode Gelap"}
           >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === "dark" ? <FontAwesomeIcon icon={faSun} className="w-4 h-4" /> : <FontAwesomeIcon icon={faMoon} className="w-4 h-4" />}
           </button>
         </div>
 
@@ -75,10 +76,10 @@ export default function Navbar() {
             className="p-2.5 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all"
             title={theme === "dark" ? "Mode Terang" : "Mode Gelap"}
           >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === "dark" ? <FontAwesomeIcon icon={faSun} className="w-4 h-4" /> : <FontAwesomeIcon icon={faMoon} className="w-4 h-4" />}
           </button>
           <button className="p-2 text-gray-400" onClick={() => setOpen(!open)}>
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {open ? <FontAwesomeIcon icon={faXmark} className="w-5 h-5" /> : <FontAwesomeIcon icon={faBars} className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -97,7 +98,7 @@ export default function Navbar() {
                   active ? "bg-white/10 text-blue-400" : "text-gray-400 hover:bg-white/5"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <FontAwesomeIcon icon={Icon} className="w-4 h-4" />
                 {link.label}
               </Link>
             );
